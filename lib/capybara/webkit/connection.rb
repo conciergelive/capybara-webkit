@@ -42,8 +42,9 @@ module Capybara::Webkit
     end
 
     def open_pipe
-      _, @pipe_stdout, @pipe_stderr, wait_thr = Open3.popen3(SERVER_PATH)
-      @pid = wait_thr[:pid]
+      @pipe_stdin, @pipe_stdout, @pipe_stderr, @wait_thr = Open3.popen3(SERVER_PATH)
+      
+      @pid = @wait_thr[:pid]
       register_shutdown_hook
     end
 
@@ -57,10 +58,17 @@ module Capybara::Webkit
     end
 
     def kill_process
-      if RUBY_PLATFORM =~ /mingw32/
-        Process.kill(9, @pid)
-      else
-        Process.kill("INT", @pid)
+      begin
+        if RUBY_PLATFORM =~ /mingw32/
+          Process.kill(9, @pid)
+        else
+          Process.kill("INT", @pid)
+        end
+      rescue Errno::ESRCH
+      ensure
+        [@pipe_stdin, @pipe_stdout, @pipe_stderr].each{|pipe| pipe.close}
+        @wait_thr.exit
+        @socket.close
       end
     end
 
