@@ -70,6 +70,8 @@ module Capybara::Webkit
         @wait_thr.exit
         @socket.close
       end
+    rescue Errno::ESRCH
+      # This just means that the webkit_server process has already ended
     end
 
     def discover_port
