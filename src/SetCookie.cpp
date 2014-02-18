@@ -8,8 +8,8 @@ SetCookie::SetCookie(WebPageManager *manager, QStringList &arguments, QObject *p
 
 void SetCookie::start()
 {
-  QList<QNetworkCookie> cookies = QNetworkCookie::parseCookies(arguments()[0].toAscii());
+  QList<QNetworkCookie> cookies = QNetworkCookie::parseCookies(arguments()[0].toLatin1());
   NetworkCookieJar *jar = manager()->cookieJar();
   jar->overwriteCookies(cookies);
-  emitFinished(true);
+  finish(true);
 }

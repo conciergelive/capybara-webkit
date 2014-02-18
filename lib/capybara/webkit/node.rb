@@ -1,10 +1,12 @@
 module Capybara::Webkit
   class Node < Capybara::Driver::Node
-    NBSP = "\xC2\xA0"
-    NBSP.force_encoding("UTF-8") if NBSP.respond_to?(:force_encoding)
+    def visible_text
+      Capybara::Helpers.normalize_whitespace(invoke("text"))
+    end
+    alias_method :text, :visible_text
 
-    def text
-      invoke("text").gsub(NBSP, ' ').gsub(/\s+/u, ' ').strip
+    def all_text
+      Capybara::Helpers.normalize_whitespace(invoke("allText"))
     end
 
     def [](name)
@@ -22,7 +24,7 @@ module Capybara::Webkit
 
     def value
       if multiple_select?
-        self.find(".//option").select(&:selected?).map(&:value)
+        self.find_xpath(".//option").select(&:selected?).map(&:value)
       else
         invoke "value"
       end
@@ -45,7 +47,7 @@ module Capybara::Webkit
     end
 
     def unselect_option
-      select = find("ancestor::select").first
+      select = find_xpath("ancestor::select").first
       if select.multiple_select?
         invoke "unselectOption"
       else
@@ -54,7 +56,19 @@ module Capybara::Webkit
     end
 
     def click
-      invoke "click"
+      invoke("leftClick")
+    end
+
+    def double_click
+      invoke("doubleClick")
+    end
+
+    def right_click
+      invoke("rightClick")
+    end
+
+    def hover
+      invoke("hover")
     end
 
     def drag_to(element)
@@ -78,7 +92,11 @@ module Capybara::Webkit
     end
 
     def disabled?
-      self['disabled']
+      if %w(option optgroup).include? tag_name
+        self['disabled'] || find_xpath("parent::*")[0].disabled?
+      else
+        self['disabled']
+      end
     end
 
     def path
@@ -93,18 +111,22 @@ module Capybara::Webkit
       invoke "trigger", event
     end
 
-    def find(xpath)
-      invoke("findWithin", xpath).split(',').map do |native|
+    def find_xpath(xpath)
+      invoke("findXpathWithin", xpath).split(',').map do |native|
+        self.class.new(driver, native)
+      end
+    end
+
+    alias_method :find, :find_xpath
+
+    def find_css(selector)
+      invoke("findCssWithin", selector).split(',').map do |native|
         self.class.new(driver, native)
       end
     end
 
     def invoke(name, *args)
-      if allow_unattached_nodes? || attached?
-        browser.command "Node", name, native, *args
-      else
-        raise Capybara::Webkit::NodeNotAttachedError
-      end
+      browser.command "Node", name, allow_unattached_nodes?, native, *args
     end
 
     def allow_unattached_nodes?

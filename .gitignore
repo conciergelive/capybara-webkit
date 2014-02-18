@@ -1,5 +1,6 @@
 *.swp
 bin/webkit_server*
+test/testwebkitserver
 *.swo
 *~
 *.o
@@ -19,3 +20,8 @@ tmp
 src/debug
 webkit_server.pro.user
 *.gem
+.vagrant
+*.gch
+.ruby-version
+.ruby-gemset
+.idea

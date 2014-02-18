@@ -1,16 +1,17 @@
 #include "Node.h"
 #include "WebPage.h"
 #include "WebPageManager.h"
+#include "InvocationResult.h"
 
-Node::Node(WebPageManager *manager, QStringList &arguments, QObject *parent) : SocketCommand(manager, arguments, parent) {
+Node::Node(WebPageManager *manager, QStringList &arguments, QObject *parent) : JavascriptCommand(manager, arguments, parent) {
 }
 
 void Node::start() {
   QStringList functionArguments(arguments());
   QString functionName = functionArguments.takeFirst();
-  QVariant result = page()->invokeCapybaraFunction(functionName, functionArguments);
-  QString attributeValue = result.toString();
-  emitFinished(true, attributeValue);
+  QString allowUnattached = functionArguments.takeFirst();
+  InvocationResult result = page()->invokeCapybaraFunction(functionName, allowUnattached == "true", functionArguments);
+  finish(&result);
 }
 
 QString Node::toString() const {

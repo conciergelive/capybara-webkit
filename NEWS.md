@@ -1,4 +1,40 @@
-New for HEAD:
+New for 1.1.1:
+* Lock capybara dependency to < 2.2.0.
+
+New for 1.1.0:
+
+* Improve messages for ClickFailed errors to aid debugging.
+* Fix long load times on Ruby 2.0.0-p195.
+* Automatically save screenshots on ClickFailed errors.
+* Render a mouse pointer in screenshots for the current mouse location.
+* Silent debug messages from Qt.
+* Fix OS X keychain bug in Qt 5 related to basic authentication.
+* Fix issues visiting URLs with square brackets.
+* Fail immediately when trying to install with unsupported versions of Qt.
+* Fix race condition leading to InvalidResponseErrors.
+
+New for 1.0.0:
+
+* Fix a memory leak in the logger.
+* Add Vagrant configuration.
+* Deprecate the stdout option for Connection.
+* Make Node#text work for svg elements.
+* Add Driver#version to print version info.
+* Click elements with native events.
+* Fix test failures from warnings.
+* Capybara 2.1 compatibility.
+* Implement right click.
+* Qt 5 compatibility.
+* Set text fields using native key events.
+* Clear localStorage on reset.
+
+New for 0.14.1:
+
+* Rescue from Errno::ESRCH in the exit hook in case webkit_server has already ended.
+* Remove web font override for first-letter and first-line pseudo elements, which was causing issues for some users.
+* Restore viewport dimensions after rendering screenshots.
+
+New for 0.14.0:
 
 * URL blacklist support.
 * Various fixes for JavaScript console messages.
@@ -12,6 +48,10 @@ New for HEAD:
 * JavaScipt console messages and alerts are now written to the logger instead of directly to stdout.
 * Dropped support for Qt 4.7.
 * Fix deadlocks encountered during page load.
+* Delete Response objects when commands have timed out.
+* Fix an infinite loop when invalid credentials are used for HTTP auth.
+* Ensure queued commands start only after pending commands have finished.
+* Fix segfaults related to web fonts on OS X.
 
 New for 0.13.0:
 

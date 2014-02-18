@@ -22,8 +22,16 @@ module Capybara::Webkit
       command("Header", key, value)
     end
 
-    def find(query)
-      command("Find", query).split(",")
+    def title
+      command("Title")
+    end
+
+    def find_xpath(query)
+      command("FindXpath", query).split(",")
+    end
+
+    def find_css(query)
+      command("FindCss", query).split(",")
     end
 
     def reset!
@@ -39,12 +47,8 @@ module Capybara::Webkit
     end
 
     def console_messages
-      command("ConsoleMessages").split("\n").map do |messages|
-        parts = messages.split("|", 3)
-        message = parts.pop.gsub("\\n", "\n")
-        { :source => parts.first, :message => message }.tap do |message|
-          message[:line_number] = Integer(parts[1]) if parts[1]
-        end
+      JSON.parse(command("ConsoleMessages")).map do |message|
+        message.inject({}) { |m,(k,v)| m.merge(k.to_sym => v) }
       end
     end
 
@@ -55,15 +59,15 @@ module Capybara::Webkit
     end
 
     def alert_messages
-      command("JavascriptAlertMessages").split("\n")
+      JSON.parse(command("JavascriptAlertMessages"))
     end
 
     def confirm_messages
-      command("JavascriptConfirmMessages").split("\n")
+      JSON.parse(command("JavascriptConfirmMessages"))
     end
 
     def prompt_messages
-      command("JavascriptPromptMessages").split("\n")
+      JSON.parse(command("JavascriptPromptMessages"))
     end
 
     def response_headers
@@ -74,11 +78,13 @@ module Capybara::Webkit
       command("CurrentUrl")
     end
 
-    def frame_focus(frame_id_or_index=nil)
-      if frame_id_or_index.is_a? Fixnum
-        command("FrameFocus", "", frame_id_or_index.to_s)
-      elsif frame_id_or_index
-        command("FrameFocus", frame_id_or_index)
+    def frame_focus(selector=nil)
+      if selector.respond_to?(:base)
+        selector.base.invoke('focus')
+      elsif selector.is_a? Fixnum
+        command("FrameFocus", "", selector.to_s)
+      elsif selector
+        command("FrameFocus", selector)
       else
         command("FrameFocus")
       end
@@ -193,6 +199,10 @@ module Capybara::Webkit
       command("ResizeWindow", width.to_i, height.to_i)
     end
 
+    def version
+      command("Version")
+    end
+
     private
 
     def check
@@ -202,24 +212,10 @@ module Capybara::Webkit
       if result.nil?
         raise NoResponseError, "No response received from the server."
       elsif result != 'ok'
-        case response = read_response
-        when "timeout"
-          raise Capybara::TimeoutError, "Request timed out after #{timeout_seconds}"
-        else
-          raise InvalidResponseError, response
-        end
+        raise JsonError.new(read_response)
       end
 
       result
-    end
-
-    def timeout_seconds
-      seconds = timeout
-      if seconds > 1
-        "#{seconds} seconds"
-      else
-        "1 second"
-      end
     end
 
     def read_response

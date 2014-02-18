@@ -1,17 +1,23 @@
 #ifndef _WEBPAGE_H
 #define _WEBPAGE_H
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <QtWebKitWidgets>
+#else
 #include <QtWebKit>
+#endif
+#include <QtNetwork>
 
 class WebPageManager;
-class NetworkAccessManager;
+class InvocationResult;
+class NetworkReplyProxy;
 
 class WebPage : public QWebPage {
   Q_OBJECT
 
   public:
     WebPage(WebPageManager *, QObject *parent = 0);
-    QVariant invokeCapybaraFunction(const char *name, const QStringList &arguments);
-    QVariant invokeCapybaraFunction(QString &name, const QStringList &arguments);
+    InvocationResult invokeCapybaraFunction(const char *name, bool allowUnattached, const QStringList &arguments);
+    InvocationResult invokeCapybaraFunction(QString &name, bool allowUnattached, const QStringList &arguments);
     QString failureString();
     QString userAgentForUrl(const QUrl &url ) const;
     void setUserAgent(QString userAgent);
@@ -20,22 +26,26 @@ class WebPage : public QWebPage {
     void setPromptText(QString action);
     int getLastStatus();
     void setCustomNetworkAccessManager();
-    bool render(const QString &fileName);
+    bool render(const QString &fileName, const QSize &minimumSize);
     virtual bool extension (Extension extension, const ExtensionOption *option=0, ExtensionReturn *output=0);
     void setSkipImageLoading(bool skip);
-    QString consoleMessages();
-    QString alertMessages();
-    QString confirmMessages();
-    QString promptMessages();
+    QVariantList consoleMessages();
+    QVariantList alertMessages();
+    QVariantList confirmMessages();
+    QVariantList promptMessages();
     void resetWindowSize();
+    void resetLocalStorage();
     QWebPage *createWindow(WebWindowType type);
     QString uuid();
     QString getWindowName();
     bool matchesWindowSelector(QString);
     void setFocus();
-    NetworkAccessManager *networkAccessManager();
-    bool unsupportedContentLoaded();
     void unsupportedContentFinishedReply(QNetworkReply *reply);
+    QStringList pageHeaders();
+    QByteArray body();
+    QString contentType();
+    void mouseEvent(QEvent::Type type, const QPoint &position, Qt::MouseButton button);
+    bool clickTest(QWebElement element, int absoluteX, int absoluteY);
 
   public slots:
     bool shouldInterruptJavaScript();
@@ -43,10 +53,10 @@ class WebPage : public QWebPage {
     void loadStarted();
     void loadFinished(bool);
     bool isLoading() const;
-    const QList<QNetworkReply::RawHeaderPair> &pageHeaders();
     void frameCreated(QWebFrame *);
     void handleSslErrorsForReply(QNetworkReply *reply, const QList<QSslError> &);
     void handleUnsupportedContent(QNetworkReply *reply);
+    void replyFinished(QUrl &, QNetworkReply *);
 
   signals:
     void pageFinished(bool);
@@ -71,15 +81,16 @@ class WebPage : public QWebPage {
     void setUserStylesheet();
     bool m_confirm;
     bool m_prompt;
-    QStringList m_consoleMessages;
-    QStringList m_alertMessages;
-    QStringList m_confirmMessages;
+    QVariantList m_consoleMessages;
+    QVariantList m_alertMessages;
+    QVariantList m_confirmMessages;
     QString m_prompt_text;
-    QStringList m_promptMessages;
+    QVariantList m_promptMessages;
     QString m_uuid;
     WebPageManager *m_manager;
     QString m_errorPageMessage;
-    bool m_unsupportedContentLoaded;
+    void setFrameProperties(QWebFrame *, QUrl &, NetworkReplyProxy *);
+    QPoint m_mousePosition;
 };
 
 #endif //_WEBPAGE_H

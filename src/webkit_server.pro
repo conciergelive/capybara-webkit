@@ -1,7 +1,13 @@
 TEMPLATE = app
 TARGET = webkit_server
 DESTDIR = .
+PROJECT_DIR = $$_PRO_FILE_PWD_
+BUILD_DIR = $${PROJECT_DIR}/build
+PRECOMPILED_DIR = $${BUILD_DIR}
+OBJECTS_DIR = $${BUILD_DIR}
+MOC_DIR = $${BUILD_DIR}
 HEADERS = \
+  Version.h \
   EnableLogging.h \
   Authenticate.h \
   SetConfirmAction.h \
@@ -21,7 +27,6 @@ HEADERS = \
   Command.h \
   SocketCommand.h \
   Visit.h \
-  Find.h \
   Reset.h \
   Node.h \
   JavascriptInvocation.h \
@@ -55,8 +60,18 @@ HEADERS = \
   TimeoutCommand.h \
   SetUrlBlacklist.h \
   NoOpReply.h \
+  JsonSerializer.h \
+  InvocationResult.h \
+  ErrorMessage.h \
+  Title.h \
+  FindCss.h \
+  JavascriptCommand.h \
+  FindXpath.h \
+  NetworkReplyProxy.h \
+  IgnoreDebugOutput.h
 
 SOURCES = \
+  Version.cpp \
   EnableLogging.cpp \
   Authenticate.cpp \
   SetConfirmAction.cpp \
@@ -77,7 +92,6 @@ SOURCES = \
   Command.cpp \
   SocketCommand.cpp \
   Visit.cpp \
-  Find.cpp \
   Reset.cpp \
   Node.cpp \
   JavascriptInvocation.cpp \
@@ -111,9 +125,29 @@ SOURCES = \
   TimeoutCommand.cpp \
   SetUrlBlacklist.cpp \
   NoOpReply.cpp \
+  JsonSerializer.cpp \
+  InvocationResult.cpp \
+  ErrorMessage.cpp \
+  Title.cpp \
+  FindCss.cpp \
+  JavascriptCommand.cpp \
+  FindXpath.cpp \
+  NetworkReplyProxy.cpp \
+  IgnoreDebugOutput.cpp
 
 RESOURCES = webkit_server.qrc
-QT += network webkit
-CONFIG += console
+QT += network
+greaterThan(QT_MAJOR_VERSION, 4) {
+  QT += webkitwidgets
+} else {
+  QT += webkit
+}
+lessThan(QT_MAJOR_VERSION, 5) {
+  lessThan(QT_MINOR_VERSION, 8) {
+    error(At least Qt 4.8.0 is required to run capybara-webkit.)
+  }
+}
+CONFIG += console precompile_header
 CONFIG -= app_bundle
+PRECOMPILED_HEADER = stable.h
 

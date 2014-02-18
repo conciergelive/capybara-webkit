@@ -6,11 +6,8 @@ Body::Body(WebPageManager *manager, QStringList &arguments, QObject *parent) : S
 }
 
 void Body::start() {
-  QString result;
-  if (page()->unsupportedContentLoaded())
-    result = page()->currentFrame()->toPlainText();
+  if (page()->contentType().contains("html"))
+    finish(true, page()->currentFrame()->toHtml());
   else
-    result = page()->currentFrame()->toHtml();
-
-  emitFinished(true, result);
+    finish(true, page()->body());
 }

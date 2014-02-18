@@ -29,8 +29,14 @@ module Capybara::Webkit
       browser.visit(path)
     end
 
-    def find(query)
-      browser.find(query).map { |native| Node.new(self, native) }
+    def find_xpath(xpath)
+      browser.find_xpath(xpath).map { |native| Node.new(self, native) }
+    end
+
+    alias_method :find, :find_xpath
+
+    def find_css(selector)
+      browser.find_css(selector).map { |native| Node.new(self, native) }
     end
 
     def html
@@ -39,6 +45,10 @@ module Capybara::Webkit
 
     def header(key, value)
       browser.header(key, value)
+    end
+
+    def title
+      browser.title
     end
 
     def execute_script(script)
@@ -82,8 +92,8 @@ module Capybara::Webkit
       browser.resize_window(width, height)
     end
 
-    def within_frame(frame_id_or_index)
-      browser.frame_focus(frame_id_or_index)
+    def within_frame(selector)
+      browser.frame_focus(selector)
       begin
         yield
       ensure
@@ -161,9 +171,15 @@ module Capybara::Webkit
     end
 
     def invalid_element_errors
-      []
+      [Capybara::Webkit::ClickFailed]
     end
 
-    private
+    def version
+      [
+        "Capybara: #{Capybara::VERSION}",
+        "capybara-webkit: #{Capybara::Driver::Webkit::VERSION}",
+        browser.version
+      ].join("\n")
+    end
   end
 end

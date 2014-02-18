@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.email    = "support@thoughtbot.com"
   s.homepage = "http://github.com/thoughtbot/capybara-webkit"
   s.summary  = "Headless Webkit driver for Capybara"
+  s.license  = 'MIT'
 
   s.files        = `git ls-files`.split("\n")
   s.test_files   = `git ls-files -- {spec,features}/*`.split("\n")
@@ -16,14 +17,17 @@ Gem::Specification.new do |s|
 
   s.extensions = "extconf.rb"
 
-  s.add_runtime_dependency("capybara", [">= 2.0.1"])
+  s.required_ruby_version = ">= 1.9.0"
+
+  s.add_runtime_dependency("capybara", ">= 2.0.2", "< 2.2.0")
   s.add_runtime_dependency("json")
 
-  s.add_development_dependency("rspec", "~> 2.6.0")
+  s.add_development_dependency("rspec", "~> 2.14.0")
   # Sinatra is used by Capybara's TestApp
   s.add_development_dependency("sinatra")
   s.add_development_dependency("mini_magick")
   s.add_development_dependency("rake")
   s.add_development_dependency("appraisal", "~> 0.4.0")
+  s.add_development_dependency("selenium-webdriver")
 end
 

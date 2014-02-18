@@ -4,7 +4,7 @@
   }
 
 CHECK_COMMAND(Visit)
-CHECK_COMMAND(Find)
+CHECK_COMMAND(FindXpath)
 CHECK_COMMAND(Reset)
 CHECK_COMMAND(Node)
 CHECK_COMMAND(Evaluate)
@@ -39,4 +39,6 @@ CHECK_COMMAND(JavascriptPromptMessages)
 CHECK_COMMAND(GetTimeout)
 CHECK_COMMAND(SetTimeout)
 CHECK_COMMAND(SetUrlBlacklist)
-
+CHECK_COMMAND(Title)
+CHECK_COMMAND(Version)
+CHECK_COMMAND(FindCss)

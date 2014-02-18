@@ -8,28 +8,45 @@ describe Capybara::Webkit::Connection do
     connection.puts 1
     connection.puts url.to_s.bytesize
     connection.print url
-    connection.gets.should == "ok\n"
-    connection.gets.should == "0\n"
+    connection.gets.should eq "ok\n"
+    connection.gets.should eq "0\n"
     connection.puts "Body"
     connection.puts 0
-    connection.gets.should == "ok\n"
+    connection.gets.should eq "ok\n"
     response_length = connection.gets.to_i
     response = connection.read(response_length)
     response.should include("Hey there")
   end
 
-  it 'forwards stdout to the given IO object' do
-    io = StringIO.new
-    redirected_connection = Capybara::Webkit::Connection.new(:stdout => io)
-    script = 'console.log("hello world")'
+  it 'forwards stderr to the given IO object' do
+    read_io, write_io = IO.pipe
+    redirected_connection = Capybara::Webkit::Connection.new(:stderr => write_io)
     redirected_connection.puts "EnableLogging"
     redirected_connection.puts 0
+
+    script = 'console.log("hello world")'
     redirected_connection.puts "Execute"
     redirected_connection.puts 1
     redirected_connection.puts script.to_s.bytesize
     redirected_connection.print script
-    sleep(0.5)
-    io.string.should include "hello world \n"
+
+    expect(read_io).to include_response "hello world \n"
+  end
+
+  it 'does not forward stderr to nil' do
+    IO.should_not_receive(:copy_stream)
+    Capybara::Webkit::Connection.new(:stderr => nil)
+  end
+
+  it 'prints a deprecation warning if the stdout option is used' do
+    Capybara::Webkit::Connection.any_instance.should_receive(:warn)
+    Capybara::Webkit::Connection.new(:stdout => nil)
+  end
+
+  it 'does not forward stdout to nil if the stdout option is used' do
+    Capybara::Webkit::Connection.any_instance.stub(:warn)
+    IO.should_not_receive(:copy_stream)
+    Capybara::Webkit::Connection.new(:stdout => nil)
   end
 
   it "returns the server port" do
@@ -37,7 +54,7 @@ describe Capybara::Webkit::Connection do
   end
 
   it 'sets appropriate options on its socket' do
-    socket = stub('socket')
+    socket = double('socket')
     TCPSocket.stub(:open).and_return(socket)
     if defined?(Socket::TCP_NODELAY)
       socket.should_receive(:setsockopt).with(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, true)

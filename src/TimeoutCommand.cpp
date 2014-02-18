@@ -2,6 +2,7 @@
 #include "Command.h"
 #include "WebPageManager.h"
 #include "WebPage.h"
+#include "ErrorMessage.h"
 #include <QTimer>
 #include <QApplication>
 
@@ -39,13 +40,13 @@ void TimeoutCommand::startTimeout() {
 }
 
 void TimeoutCommand::pendingLoadFinished(bool success) {
+  disconnect(m_manager, SIGNAL(pageFinished(bool)), this, SLOT(pendingLoadFinished(bool)));
   if (success) {
     startCommand();
   } else {
     disconnect(m_timer, SIGNAL(timeout()), this, SLOT(commandTimeout()));
     disconnect(m_manager, SIGNAL(loadStarted()), this, SLOT(pageLoadingFromCommand()));
-    disconnect(m_manager, SIGNAL(pageFinished(bool)), this, SLOT(pendingLoadFinished(bool)));
-    emitFinished(false, m_manager->currentPage()->failureString());
+    finish(false, new ErrorMessage(m_manager->currentPage()->failureString()));
   }
 }
 
@@ -58,13 +59,13 @@ void TimeoutCommand::commandTimeout() {
   disconnect(m_manager, SIGNAL(pageFinished(bool)), this, SLOT(pendingLoadFinished(bool)));
   disconnect(m_command, SIGNAL(finished(Response *)), this, SLOT(commandFinished(Response *)));
   m_manager->currentPage()->triggerAction(QWebPage::Stop);
-  emit finished(new Response(false, QString("timeout"), this));
+  QString message = QString("Request timed out after %1 second(s)").arg(m_manager->getTimeout());
+  finish(false, new ErrorMessage("TimeoutError", message));
 }
 
 void TimeoutCommand::commandFinished(Response *response) {
   disconnect(m_timer, SIGNAL(timeout()), this, SLOT(commandTimeout()));
   disconnect(m_manager, SIGNAL(loadStarted()), this, SLOT(pageLoadingFromCommand()));
-  disconnect(m_manager, SIGNAL(pageFinished(bool)), this, SLOT(pendingLoadFinished(bool)));
   emit finished(response);
 }
 

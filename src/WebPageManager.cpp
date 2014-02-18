@@ -1,15 +1,22 @@
 #include "WebPageManager.h"
 #include "WebPage.h"
 #include "NetworkCookieJar.h"
+#include "NetworkAccessManager.h"
 
 WebPageManager::WebPageManager(QObject *parent) : QObject(parent) {
   m_ignoreSslErrors = false;
   m_cookieJar = new NetworkCookieJar(this);
   m_success = true;
   m_loggingEnabled = false;
-  m_ignoredOutput = new QString();
+  m_ignoredOutput = new QFile(this);
   m_timeout = -1;
+  m_networkAccessManager = new NetworkAccessManager(this);
+  m_networkAccessManager->setCookieJar(m_cookieJar);
   createPage(this)->setFocus();
+}
+
+NetworkAccessManager *WebPageManager::networkAccessManager() {
+  return m_networkAccessManager;
 }
 
 void WebPageManager::append(WebPage *value) {
@@ -102,6 +109,8 @@ void WebPageManager::setTimeout(int timeout) {
 void WebPageManager::reset() {
   m_timeout = -1;
   m_cookieJar->clearCookies();
+  m_networkAccessManager->reset();
+  m_pages.first()->resetLocalStorage();
   m_pages.first()->deleteLater();
   m_pages.clear();
   createPage(this)->setFocus();
@@ -121,10 +130,11 @@ bool WebPageManager::isLoading() const {
 }
 
 QDebug WebPageManager::logger() const {
-  if (m_loggingEnabled)
-    return qDebug();
-  else
+  if (m_loggingEnabled) {
+    return qCritical();
+  } else {
     return QDebug(m_ignoredOutput);
+  }
 }
 
 void WebPageManager::enableLogging() {
