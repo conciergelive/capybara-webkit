@@ -83,7 +83,10 @@ module Capybara::Webkit
           end
         end
         @wait_thr.exit
-        @socket.close
+        begin
+          @socket.close
+        rescue => IOError
+        end
       end
     rescue Errno::ESRCH
       # This just means that the webkit_server process has already ended
