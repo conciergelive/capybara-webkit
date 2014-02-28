@@ -76,7 +76,12 @@ module Capybara::Webkit
         end
       rescue Errno::ESRCH
       ensure
-        [@pipe_stdin, @pipe_stdout, @pipe_stderr].each{|pipe| pipe.close if pipe}
+        [@pipe_stdin, @pipe_stdout, @pipe_stderr].each do |pipe| 
+          begin
+            pipe.close 
+          rescue =>e
+          end
+        end
         @wait_thr.exit
         @socket.close
       end
