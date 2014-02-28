@@ -85,7 +85,7 @@ module Capybara::Webkit
         @wait_thr.exit
         begin
           @socket.close
-        rescue => IOError
+        rescue IOError
         end
       end
     rescue Errno::ESRCH
