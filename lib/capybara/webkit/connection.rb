@@ -105,9 +105,11 @@ module Capybara::Webkit
     def forward_output_in_background_thread
       Thread.new do
         Thread.current.abort_on_exception = true
-        IO.copy_stream(@pipe_stderr, @output_target) if @output_target
+        begin
+          IO.copy_stream(@pipe_stderr, @output_target) if @output_target
+        rescue Exception
+        end
       end
-    rescue IOError
     end
 
     def connect
