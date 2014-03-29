@@ -53,7 +53,7 @@ module Capybara::Webkit
 
     def open_pipe
      @pipe_stdin, @pipe_stdout, @pipe_stderr, @wait_thr = Open3.popen3(SERVER_PATH)
-      
+
       @pid = @wait_thr[:pid]
       register_shutdown_hook
     end
@@ -76,9 +76,9 @@ module Capybara::Webkit
         end
       rescue Errno::ESRCH
       ensure
-        [@pipe_stdin, @pipe_stdout, @pipe_stderr].each do |pipe| 
+        [@pipe_stdin, @pipe_stdout, @pipe_stderr].each do |pipe|
           begin
-            pipe.close 
+            pipe.close
           rescue =>e
           end
         end
@@ -107,6 +107,7 @@ module Capybara::Webkit
         Thread.current.abort_on_exception = true
         IO.copy_stream(@pipe_stderr, @output_target) if @output_target
       end
+    rescue IOError
     end
 
     def connect
